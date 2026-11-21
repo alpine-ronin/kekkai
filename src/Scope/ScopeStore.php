@@ -7,7 +7,6 @@ namespace Kekkai\Scope;
 final readonly class ScopeStore
 {
     public const DIRECTORY = '.kekkai';
-    private const RECORDED_SESSIONS = 20;
 
     /**
      * @param string $root
@@ -38,6 +37,10 @@ final readonly class ScopeStore
 
     public function clear(): bool
     {
+        $stopFile = $this->directory() . '/stop.json';
+        if (is_file($stopFile)) {
+            unlink($stopFile);
+        }
         $file = $this->file();
 
         return is_file($file) && unlink($file);
@@ -56,12 +59,11 @@ final readonly class ScopeStore
         $counts = $this->sentBackBySession();
         unset($counts[$session]);
         $counts[$session] = $count;
-        $counts = \array_slice($counts, -self::RECORDED_SESSIONS, preserve_keys: true);
         $this->write('stop.json', json_encode(['sentBack' => $counts], \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR) . "\n");
     }
 
     /**
-     * @return array<int|string, int> the send-backs of the latest sessions, the most recent last
+     * @return array<int|string, int> the send-backs of each session since the scope was declared
      */
     private function sentBackBySession(): array
     {

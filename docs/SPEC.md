@@ -86,7 +86,7 @@ with its reason.
 
 ### Clearing
 
-`kekkai scope clear` deletes the scope. Only the user can: the agent has no tool for it, and `.kekkai/` is guarded.
+`kekkai scope clear` deletes the scope, and the stop hook's send-back counts (`.kekkai/stop.json`). Only the user can: the agent has no tool for it, and `.kekkai/` is guarded.
 Clear it when a task is done; the next task declares its own.
 
 ## Files

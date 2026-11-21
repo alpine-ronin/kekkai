@@ -20,6 +20,7 @@ final readonly class Report
      * @param Config $config
      * @param string $base
      * @param list<Decision> $decisions the decision for each changed file, allowed ones included
+     * @param string $root the project's directory, which a check may print before a path
      */
     public function __construct(
         public array $files,
@@ -29,6 +30,7 @@ final readonly class Report
         public Config $config,
         public string $base,
         public array $decisions,
+        public string $root,
     ) {
     }
 
@@ -150,7 +152,7 @@ final readonly class Report
     {
         $names = [];
         foreach ($this->checks as $check) {
-            if (!$check->passed && self::names($this->withoutLongerPathsHolding($check->output, $path), $path)) {
+            if (!$check->passed && $this->names($this->withoutLongerPathsHolding($check->output, $path), $path)) {
                 $names[] = $check->name;
             }
         }
@@ -170,11 +172,14 @@ final readonly class Report
     }
 
     /**
-     * The path on its own, or at the end of an absolute path: not inside a longer name (src/A.php.bak).
+     * The path on its own or after the project's directory: not inside a longer name (tests/src/A.php, src/A.php.bak).
      */
-    private static function names(string $output, string $path): bool
+    private function names(string $output, string $path): bool
     {
-        return preg_match('~(?<![\w.-])' . preg_quote($path, '~') . '(?![\w/-]|\.\w)~', $output) === 1;
+        $root = preg_quote(rtrim($this->root, '/') . '/', '~');
+        $pattern = '~(?<![\w./-])(?:' . $root . ')?' . preg_quote($path, '~') . '(?![\w/-]|\.\w)~';
+
+        return preg_match($pattern, $output) === 1;
     }
 
     private function isBlocking(Decision $decision): bool

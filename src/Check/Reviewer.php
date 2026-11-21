@@ -58,6 +58,6 @@ final readonly class Reviewer
             }
         }
 
-        return new Report($files, $findings, $checks, $scope, $this->project->config, $base, $decisions);
+        return new Report($files, $findings, $checks, $scope, $this->project->config, $base, $decisions, $this->project->root);
     }
 }

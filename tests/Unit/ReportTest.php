@@ -18,12 +18,12 @@ final class ReportTest extends TestCase
     public function testOutsideTheScopeFailsOnlyWhenDenied(): void
     {
         $outside = new Decision(Verdict::Deny, Decision::OUTSIDE_SCOPE, 'src/B.php', '');
-        $deny = new Report(['src/B.php'], [$outside], [], null, new Config(), 'HEAD', [$outside]);
+        $deny = new Report(['src/B.php'], [$outside], [], null, new Config(), 'HEAD', [$outside], '/app');
         self::assertFalse($deny->passed());
         self::assertStringContainsString('✗ Outside the scope:', $deny->toText());
 
         $asked = new Decision(Verdict::Ask, Decision::OUTSIDE_SCOPE, 'src/B.php', '');
-        $ask = new Report(['src/B.php'], [$asked], [], null, Config::fromArray(['outside-scope' => 'ask']), 'HEAD', [$asked]);
+        $ask = new Report(['src/B.php'], [$asked], [], null, Config::fromArray(['outside-scope' => 'ask']), 'HEAD', [$asked], '/app');
         self::assertTrue($ask->passed());
         self::assertStringContainsString('! Outside the scope:', $ask->toText());
     }
@@ -35,7 +35,7 @@ final class ReportTest extends TestCase
             new Decision(Verdict::Deny, Decision::GUARDED, 'kekkai.yaml', ''),
             new Decision(Verdict::Ask, Decision::NO_SCOPE, 'src/A.php', ''),
         ];
-        $report = new Report(['composer.lock', 'kekkai.yaml', 'src/A.php'], $findings, [], null, new Config(), 'main', $findings);
+        $report = new Report(['composer.lock', 'kekkai.yaml', 'src/A.php'], $findings, [], null, new Config(), 'main', $findings, '/app');
 
         self::assertTrue($report->passed());
         $text = $report->toText();
@@ -57,6 +57,7 @@ final class ReportTest extends TestCase
             new Config(),
             'HEAD',
             [new Decision(Verdict::Allow, Decision::IN_SCOPE, 'src/A.php', '', 'src/')],
+            '/app',
         );
 
         self::assertFalse($report->passed());
@@ -93,6 +94,7 @@ final class ReportTest extends TestCase
             new Config(),
             'HEAD',
             $decisions,
+            '/app',
         );
 
         $lines = explode("\n", $report->toText());
@@ -112,18 +114,20 @@ final class ReportTest extends TestCase
 
     public function testAFailingCheckNamesAFileOnlyByItsWholePath(): void
     {
-        $files = ['src/A.php', 'src/A.php.bak', 'src/B.php', 'tests/src/A.php'];
+        $files = ['src/A.php', 'src/A.php.bak', 'src/B.php', 'src/C.php', 'tests/src/A.php'];
         $decisions = array_map(static fn (string $file): Decision => new Decision(Verdict::Allow, Decision::IN_SCOPE, $file, '', 'src/'), $files);
-        $output = "FAIL tests/src/A.php:10\nFAIL src/A.php.bak:1\nFAIL /app/src/B.php:3";
-        $report = new Report($files, [], [new CheckResult('tests', 'phpunit', false, $output)], null, new Config(), 'HEAD', $decisions);
+        $output = "FAIL tests/src/A.php:10\nFAIL src/A.php.bak:1\nFAIL /app/src/B.php:3\nFAIL tests/src/C.php:4\nFAIL /other/src/C.php:5";
+        $report = new Report($files, [], [new CheckResult('tests', 'phpunit', false, $output)], null, new Config(), 'HEAD', $decisions, '/app');
 
         $verdicts = $report->toArray()['verdicts'];
         self::assertIsArray($verdicts);
-        self::assertSame([[], ['tests'], ['tests'], ['tests']], array_map(static fn (mixed $verdict): mixed => Json::path($verdict, 'failedChecks'), $verdicts));
+        self::assertSame([[], ['tests'], ['tests'], [], ['tests']], array_map(static fn (mixed $verdict): mixed => Json::path($verdict, 'failedChecks'), $verdicts));
+        self::assertStringContainsString("\n✓ src/C.php: in scope (src/)\n", $report->toText());
+        self::assertStringContainsString("\n✗ src/A.php.bak: in scope (src/); check tests failed\n", $report->toText());
     }
 
     public function testNoChange(): void
     {
-        self::assertSame('Kekkai: no change since HEAD.', (new Report([], [], [], null, new Config(), 'HEAD', []))->toText());
+        self::assertSame('Kekkai: no change since HEAD.', (new Report([], [], [], null, new Config(), 'HEAD', [], '/app'))->toText());
     }
 }

@@ -8,6 +8,7 @@ use Kekkai\Check\Reviewer;
 use Kekkai\Hook\ClaudeCode;
 use Kekkai\Hook\Cursor;
 use Kekkai\Project;
+use Kekkai\Scope\ScopeStore;
 use Kekkai\Tests\Support\TemporaryProject;
 use PHPUnit\Framework\TestCase;
 
@@ -54,6 +55,9 @@ final class StopRetryTest extends TestCase
         foreach (['s', 'other'] as $session) {
             self::assertNull(ClaudeCode::stop(['session_id' => $session, 'stop_hook_active' => true], $project->root));
         }
+
+        (new ScopeStore($project->root))->clear();
+        self::assertFileDoesNotExist($project->root . '/.kekkai/stop.json', 'clearing the scope ends the task, and its counts');
     }
 
     public function testACountThatCannotBeWrittenEndsTheRetries(): void
