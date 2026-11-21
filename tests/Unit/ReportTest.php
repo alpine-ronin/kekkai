@@ -114,16 +114,17 @@ final class ReportTest extends TestCase
 
     public function testAFailingCheckNamesAFileOnlyByItsWholePath(): void
     {
-        $files = ['src/A.php', 'src/A.php.bak', 'src/B.php', 'src/C.php', 'tests/src/A.php'];
+        $files = ['src/A.php', 'src/A.php.bak', 'src/B.php', 'src/C.php', 'src/D.php', 'tests/src/A.php'];
         $decisions = array_map(static fn (string $file): Decision => new Decision(Verdict::Allow, Decision::IN_SCOPE, $file, '', 'src/'), $files);
-        $output = "FAIL tests/src/A.php:10\nFAIL src/A.php.bak:1\nFAIL /app/src/B.php:3\nFAIL tests/src/C.php:4\nFAIL /other/src/C.php:5";
+        $output = "FAIL tests/src/A.php:10\nFAIL src/A.php.bak:1\nFAIL /app/src/B.php:3\nFAIL tests/src/C.php:4\nFAIL /other/src/C.php:5\nFAIL ./src/D.php:6";
         $report = new Report($files, [], [new CheckResult('tests', 'phpunit', false, $output)], null, new Config(), 'HEAD', $decisions, '/app');
 
         $verdicts = $report->toArray()['verdicts'];
         self::assertIsArray($verdicts);
-        self::assertSame([[], ['tests'], ['tests'], [], ['tests']], array_map(static fn (mixed $verdict): mixed => Json::path($verdict, 'failedChecks'), $verdicts));
+        self::assertSame([[], ['tests'], ['tests'], [], ['tests'], ['tests']], array_map(static fn (mixed $verdict): mixed => Json::path($verdict, 'failedChecks'), $verdicts));
         self::assertStringContainsString("\n✓ src/C.php: in scope (src/)\n", $report->toText());
         self::assertStringContainsString("\n✗ src/A.php.bak: in scope (src/); check tests failed\n", $report->toText());
+        self::assertStringContainsString("\n✗ src/D.php: in scope (src/); check tests failed\n", $report->toText());
     }
 
     public function testNoChange(): void

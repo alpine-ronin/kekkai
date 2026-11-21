@@ -172,12 +172,12 @@ final readonly class Report
     }
 
     /**
-     * The path on its own or after the project's directory: not inside a longer name (tests/src/A.php, src/A.php.bak).
+     * The path on its own, after ./ or after the project's directory: not inside a longer name (tests/src/A.php, src/A.php.bak).
      */
     private function names(string $output, string $path): bool
     {
         $root = preg_quote(rtrim($this->root, '/') . '/', '~');
-        $pattern = '~(?<![\w./-])(?:' . $root . ')?' . preg_quote($path, '~') . '(?![\w/-]|\.\w)~';
+        $pattern = '~(?<![\w./-])(?:' . $root . '|\./)?' . preg_quote($path, '~') . '(?![\w/-]|\.\w)~';
 
         return preg_match($pattern, $output) === 1;
     }
