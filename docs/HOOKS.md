@@ -63,7 +63,7 @@ settings. What it writes:
     "version": 1,
     "hooks": {
         "preToolUse": [{"command": "vendor/bin/kekkai hook pre-tool-use --agent cursor", "matcher": "Write"}],
-        "stop": [{"command": "vendor/bin/kekkai hook stop --agent cursor", "timeout": 900, "loop_limit": 1}]
+        "stop": [{"command": "vendor/bin/kekkai hook stop --agent cursor", "timeout": 900, "loop_limit": 6}]
     }
 }
 ```
@@ -76,7 +76,8 @@ Cursor runs project hooks from the project root, hence the relative path. Two di
 
 - Cursor does not enforce *ask* before a tool runs, so an edit Kekkai would ask about (a protected file, a path
   outside the project, no scope with `without-scope: ask`) is refused, and the agent is told to ask you.
-- The stop hook sends the agent back with a follow-up message, once (`loop_limit: 1`). The `cursor-agent` CLI did not
+- The stop hook sends the agent back with a follow-up message, once (more for a check with `retry`; `loop_limit: 6`
+  allows the most). The `cursor-agent` CLI did not
   run the stop hook when this was written: there, run `kekkai check` before accepting the work.
 
 ## Other agents

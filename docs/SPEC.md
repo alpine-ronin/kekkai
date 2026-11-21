@@ -86,7 +86,7 @@ with its reason.
 
 ### Clearing
 
-`kekkai scope clear` deletes the scope. Only the user can: the agent has no tool for it, and `.kekkai/` is guarded.
+`kekkai scope clear` deletes the scope, and the stop hook's send-back counts (`.kekkai/stop.json`). Only the user can: the agent has no tool for it, and `.kekkai/` is guarded.
 Clear it when a task is done; the next task declares its own.
 
 ## Files
@@ -114,7 +114,9 @@ Clear it when a task is done; the next task declares its own.
    revision) and the untracked files not ignored (`git ls-files --others --exclude-standard`), sorted and
    deduplicated. Deleted files count. In a repository without commits, the staged files. Outside a git repository,
    or with a revision git does not know, an error.
-2. **Findings**: the decision for each changed file, except those allowed. `no-scope` decisions are left out when
+2. **Findings**: the decision for each changed file, except those allowed. The report also keeps every decision,
+   allowed ones included, with what decided it (the scope entry, or the protected or always-allowed pattern): it
+   lists them one line per file before the summary, and as `verdicts` in JSON. `no-scope` decisions are left out when
    `without-scope: allow`.
 3. **Checks**: when `$runChecks` and at least one file changed, every check of `kekkai.yaml`, in order, from the
    project root, through the shell, with `KEKKAI_CHANGED_FILES` (the changed files, one per line) and `KEKKAI_BASE`
@@ -163,7 +165,10 @@ Registered on `Stop`. Runs the review against `HEAD`.
 - Failed: `{"decision": "block", "reason": "<the report>\n\nFix what failed before finishing: …"}`. Claude Code
   then continues the conversation with the reason.
 - Input with `"stop_hook_active": true` (the agent is already continuing because of a stop hook): nothing. The agent
-  is sent back **once**; a check that can never pass does not keep it in a loop.
+  is sent back **once**; a check that can never pass does not keep it in a loop. Exception: a check with `retry: N`
+  that still fails sends it back up to N more times in a row, counted per `session_id` in `.kekkai/stop.json`
+  (written only when a check has `retry`; without `session_id`, nothing).
+- Only the checks with `stop` in `on` run.
 - Error (not a git repository, invalid configuration): nothing, so the stop hook never prevents the agent from
   stopping because of Kekkai itself.
 
@@ -182,13 +187,15 @@ When Kekkai cannot decide, the answer is the `ask` one, with the error.
 
 ### Cursor: `kekkai hook stop --agent cursor [--no-checks]`
 
-Registered on `stop` with `loop_limit: 1`. Runs the review against `HEAD`.
+Registered on `stop` with `loop_limit: 6` (1 + the highest `retry` allowed, 5). Runs the review against `HEAD`.
 
 - Passed: nothing.
 - Failed: `{"followup_message": "<the report>\n\nFix what failed before finishing: …"}`, which Cursor sends to the
   agent as the next message.
-- Input with a `loop_count` other than 0, or a `status` other than `completed` (aborted, error): nothing. The agent
-  is sent back **once**.
+- Input with a `status` other than `completed` (aborted, error): nothing.
+- Input with a `loop_count` other than 0: nothing. The agent is sent back **once**, except for a check with
+  `retry: N` still failing, which sends it back while `loop_count` is at most N.
+- Only the checks with `stop` in `on` run.
 - Error: nothing, as for Claude Code.
 
 ## MCP server

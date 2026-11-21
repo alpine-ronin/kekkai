@@ -22,12 +22,14 @@ final readonly class Decision
      * @param string $rule
      * @param string $path
      * @param string $reason
+     * @param string|null $matchedBy the protected or always-allowed pattern, or the scope entry, that decided
      */
     public function __construct(
         public Verdict $verdict,
         public string $rule,
         public string $path,
         public string $reason,
+        public ?string $matchedBy = null,
     ) {
     }
 }

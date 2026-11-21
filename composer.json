@@ -1,6 +1,6 @@
 {
     "name": "alpine-ronin/kekkai",
-    "description": "Keeps an AI coding agent inside the scope it declared: blocks edits outside it, checks the diff before the agent stops",
+    "description": "Makes an AI coding agent's diff reviewable: the agent declares what it will change, edits outside that are refused, the diff is reviewed before it stops",
     "type": "library",
     "keywords": [
         "ai",
@@ -34,6 +34,7 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.64",
+        "opis/json-schema": "^2.4",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.0"
     },

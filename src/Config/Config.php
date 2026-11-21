@@ -95,7 +95,7 @@ final readonly class Config
             if (!\is_string($name) || !\is_int($timeout) || $timeout < 1) {
                 throw new \InvalidArgumentException(sprintf('checks[%d]: "name" must be a string and "timeout" a positive number of seconds.', $index));
             }
-            $checks[] = new CheckDefinition($name, $check['run'], $timeout);
+            $checks[] = new CheckDefinition($name, $check['run'], $timeout, self::retry($check['retry'] ?? 0, $index), self::triggers($check['on'] ?? ['stop', 'ci'], $index));
         }
 
         return new self(
@@ -197,6 +197,45 @@ final readonly class Config
         }
 
         return $map;
+    }
+
+    /**
+     * @param mixed $value
+     * @param int $index
+     */
+    private static function retry(mixed $value, int $index): int
+    {
+        if (!\is_int($value) || $value < 0 || $value > CheckDefinition::MAX_RETRY) {
+            throw new \InvalidArgumentException(sprintf('checks[%d]: "retry" must be a whole number from 0 to %d.', $index, CheckDefinition::MAX_RETRY));
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param mixed $value
+     * @param int $index
+     *
+     * @return list<CheckTrigger>
+     */
+    private static function triggers(mixed $value, int $index): array
+    {
+        $error = sprintf('checks[%d]: "on" must be a non-empty list of: stop, ci.', $index);
+        $triggers = [];
+        foreach (self::list($value, sprintf('checks[%d].on', $index)) as $name) {
+            $trigger = \is_string($name) ? CheckTrigger::tryFrom($name) : null;
+            if ($trigger === null) {
+                throw new \InvalidArgumentException($error);
+            }
+            if (!\in_array($trigger, $triggers, true)) {
+                $triggers[] = $trigger;
+            }
+        }
+        if ($triggers === []) {
+            throw new \InvalidArgumentException($error);
+        }
+
+        return $triggers;
     }
 
     /**

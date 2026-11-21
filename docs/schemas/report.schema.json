@@ -3,7 +3,7 @@
     "$id": "https://github.com/alpine-ronin/kekkai/blob/main/docs/schemas/report.schema.json",
     "title": "Kekkai review (kekkai check --format json)",
     "type": "object",
-    "required": ["passed", "base", "files", "scope", "findings", "checks"],
+    "required": ["passed", "base", "files", "scope", "findings", "checks", "verdicts"],
     "additionalProperties": false,
     "properties": {
         "passed": {"type": "boolean"},
@@ -28,6 +28,7 @@
         },
         "checks": {
             "type": "array",
+            "description": "The checks of kekkai.yaml with `ci` in `on` (kekkai check).",
             "items": {
                 "type": "object",
                 "required": ["name", "command", "passed", "timedOut", "output"],
@@ -38,6 +39,22 @@
                     "passed": {"type": "boolean"},
                     "timedOut": {"type": "boolean"},
                     "output": {"type": "string", "description": "The last 30 lines of the output."}
+                }
+            }
+        },
+        "verdicts": {
+            "type": "array",
+            "description": "One entry per changed file, in the order of files, allowed ones included.",
+            "items": {
+                "type": "object",
+                "required": ["path", "rule", "verdict", "matchedBy", "failedChecks"],
+                "additionalProperties": false,
+                "properties": {
+                    "path": {"type": "string"},
+                    "rule": {"enum": ["outside-project", "guarded", "protected", "always-allowed", "no-scope", "in-scope", "outside-scope"]},
+                    "verdict": {"enum": ["allow", "ask", "deny"]},
+                    "matchedBy": {"type": ["string", "null"], "description": "The scope entry (path, glob or zone name) that covers the file, or the protected or always-allowed pattern it matched."},
+                    "failedChecks": {"type": "array", "items": {"type": "string"}, "description": "The failing checks whose output names the file."}
                 }
             }
         }

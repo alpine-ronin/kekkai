@@ -44,11 +44,16 @@ final class ClaudeCode
      */
     public static function stop(array $input, ?string $root = null, bool $runChecks = true): ?array
     {
-        if (($input['stop_hook_active'] ?? false) === true) {
+        $root ??= self::root($input);
+        $session = \is_string($input['session_id'] ?? null) && $input['session_id'] !== '' ? $input['session_id'] : null;
+        $isContinuing = ($input['stop_hook_active'] ?? false) === true;
+        if ($isContinuing && $session === null) {
             return null;
         }
 
-        $report = Guard::review($root ?? self::root($input), $runChecks);
+        // stop_hook_active only says the agent was sent back, not how many times: Kekkai counts per session.
+        $sentBack = $isContinuing ? Guard::sentBack($root, $session) : 0;
+        $report = Guard::review($root, $runChecks, $sentBack, $session);
 
         return $report === null ? null : ['decision' => 'block', 'reason' => $report];
     }

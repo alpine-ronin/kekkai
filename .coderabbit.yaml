@@ -28,7 +28,7 @@ reviews:
       instructions: >-
         Hook input comes from the agent and is untrusted. The adapters only translate JSON: every decision comes from
         Guard. A hook never answers "allow", never lets an edit through when Kekkai cannot decide, and sends the agent
-        back at most once at stop.
+        back at most once at stop, unless a failing check sets retry: N (at most 5), which allows N more rounds.
     - path: "src/Mcp/**/*.php"
       instructions: >-
         Tool arguments come from the agent: a declared scope can only be widened, with a reason, and never cover the

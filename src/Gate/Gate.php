@@ -42,11 +42,12 @@ final readonly class Gate
 
         $protected = Config::firstMatch($this->config->protected, $relative);
         if ($protected !== null) {
-            return new Decision(Verdict::Ask, Decision::PROTECTED, $relative, sprintf('%s is protected (%s in %s): the user must approve this edit.', $relative, $protected->pattern, $this->config->file ?? 'kekkai.yaml'));
+            return new Decision(Verdict::Ask, Decision::PROTECTED, $relative, sprintf('%s is protected (%s in %s): the user must approve this edit.', $relative, $protected->pattern, $this->config->file ?? 'kekkai.yaml'), $protected->pattern);
         }
 
-        if (Config::firstMatch($this->config->alwaysAllowed, $relative) !== null) {
-            return new Decision(Verdict::Allow, Decision::ALWAYS_ALLOWED, $relative, sprintf('%s is always allowed.', $relative));
+        $alwaysAllowed = Config::firstMatch($this->config->alwaysAllowed, $relative);
+        if ($alwaysAllowed !== null) {
+            return new Decision(Verdict::Allow, Decision::ALWAYS_ALLOWED, $relative, sprintf('%s is always allowed.', $relative), $alwaysAllowed->pattern);
         }
 
         if ($this->scope === null) {
@@ -56,8 +57,9 @@ final readonly class Gate
             ));
         }
 
-        if ($this->scope->covers($relative, $this->config)) {
-            return new Decision(Verdict::Allow, Decision::IN_SCOPE, $relative, sprintf('%s is in the scope.', $relative));
+        $coveringEntry = $this->scope->coveringEntry($relative, $this->config);
+        if ($coveringEntry !== null) {
+            return new Decision(Verdict::Allow, Decision::IN_SCOPE, $relative, sprintf('%s is in the scope.', $relative), $coveringEntry);
         }
 
         $how = $this->config->allowWiden

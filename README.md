@@ -5,8 +5,8 @@
   </picture>
 </h1>
 
-<p align="center"><b>Keeps an AI coding agent inside the scope it declared.</b><br>
-Edits outside it are refused before they happen; the diff is reviewed before the agent stops.</p>
+<p align="center"><b>Makes an AI coding agent's diff reviewable.</b><br>
+The agent declares what it will change; edits outside that are refused, and the diff is reviewed before it stops.</p>
 
 <p align="center">
   <a href="https://github.com/alpine-ronin/kekkai/actions/workflows/ci.yml"><img src="https://github.com/alpine-ronin/kekkai/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
@@ -30,7 +30,9 @@ Edits outside it are refused before they happen; the diff is reviewed before the
 Ask an agent to add a price to products and it may also "tidy up" the billing module, rename a shared value object
 and touch `composer.lock` on the way. Each change looks reasonable; together they make a diff nobody can review.
 
-*Kekkai* (結界, a barrier) makes the agent say first what it is going to change, then holds it to that.
+*Kekkai* (結界, a barrier) makes the agent say first what it is going to change. Edits outside that are refused
+before they happen; a change made another way, through the shell for instance, shows up when the diff is reviewed
+before the agent stops. The reviewer gets the stated intent next to the diff, and any drift from it.
 
 ![Kekkai in a terminal: a scope is declared, an edit outside it is denied, a change made through the shell is caught by the review, the scope is widened with a reason, the review passes](docs/assets/demo.gif)
 
@@ -59,6 +61,15 @@ Edit and stop hooks ship for **Claude Code** and **Cursor**. Any other agent tha
 `kekkai check` reviews its work before you accept it or in CI: [docs/HOOKS.md](docs/HOOKS.md).
 
 No LLM, no network, nothing leaves your machine. A hook call takes about 50 ms.
+
+### Two agents at once
+
+The scope lives in `.kekkai/`, one per checkout: two agents in the same directory share it. Give each its own git
+worktree, and so its own scope:
+
+```bash
+git worktree add ../shop-catalog -b catalog    # the second agent works in ../shop-catalog
+```
 
 ## Quick start
 
@@ -220,9 +231,8 @@ The attestation says that the release workflow of this repository built the file
   afterwards, it does not prevent it. To control commands before they run, use Airlock.
 - **Edit hooks for Claude Code and Cursor.** Any MCP client can use the server and `kekkai check`, but only an agent
   with an edit hook has the edit refused before it happens.
-- **One scope per checkout.** Two agents in the same directory share it: give each its own git worktree.
 - **Sent back once.** If the review still fails, the agent is let stop, so a check that can never pass does
-  not loop forever: read the report yourself.
+  not loop forever: read the report yourself. A check's `retry` (at most 5) gives it more rounds.
 
 All of them: [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 

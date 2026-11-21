@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Kekkai\Hook;
 
+use Kekkai\Config\CheckDefinition;
+
 /**
  * The agents Kekkai has hooks for. Any other agent gets the MCP server and `kekkai check`.
  */
@@ -109,7 +111,7 @@ enum Agent: string
             ]],
             self::Cursor => ['version' => 1, 'hooks' => [
                 'preToolUse' => [['command' => $preToolUse, 'matcher' => implode('|', array_keys(Cursor::EDIT_TOOLS))]],
-                'stop' => [['command' => $stop, 'timeout' => 900, 'loop_limit' => 1]],
+                'stop' => [['command' => $stop, 'timeout' => 900, 'loop_limit' => 1 + CheckDefinition::MAX_RETRY]],
             ]],
         };
     }

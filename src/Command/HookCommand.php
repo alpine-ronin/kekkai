@@ -35,7 +35,7 @@ final class HookCommand extends Command
 
                   <info>pre-tool-use</info>   before a file is edited: refuses an edit outside the scope, asks for a protected file,
                                  never answers allow (the agent's own permissions then apply)
-                  <info>stop</info>           reviews the diff and runs the checks; when they fail, sends the agent back once
+                  <info>stop</info>           reviews the diff and runs the checks; when they fail, sends the agent back once (more with a check's retry)
                 HELP);
         $this
             ->addArgument('event', InputArgument::REQUIRED, 'pre-tool-use or stop')

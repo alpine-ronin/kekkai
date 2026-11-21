@@ -32,6 +32,10 @@ checks:
   - name: tests
     run: vendor/bin/phpunit
     timeout: 600
+    retry: 1
+  - name: mutation tests
+    run: vendor/bin/infection
+    on: [ci]
 ```
 
 ## Keys
@@ -44,7 +48,7 @@ checks:
 | `without-scope` | `allow`, `ask`, `deny` | `ask` | An edit before any scope is declared. |
 | `outside-scope` | `ask`, `deny` | `deny` | An edit outside the scope. |
 | `allow-widen` | boolean | `true` | Whether the agent may widen its own scope. With `false`, only `kekkai scope widen` does. |
-| `checks` | list of `{name, run, timeout}` | none | Commands run on the review. |
+| `checks` | list of `{name, run, timeout, retry, on}` | none | Commands run on the review. |
 
 Patterns: [SPEC.md, Patterns](SPEC.md#patterns). The order of the rules: [SPEC.md, Deciding on one path](SPEC.md#deciding-on-one-path).
 
@@ -84,6 +88,14 @@ reason, which is exactly what a reviewer wants to see.
 - Only the last 30 lines of the output are kept in the report: the agent reads the end of a failing check, not its
   whole log.
 - Skipped when no file changed, and with `--no-checks`.
+- `on`: when the check runs, a list of `stop` (the stop hook and the MCP tool `check_changes`) and `ci`
+  (`kekkai check`). Default `[stop, ci]`. A slow check with `on: [ci]` runs in `kekkai check` but not each time the
+  agent stops.
+- `retry`: how many more times a failure of this check sends the agent back after the first, from 0 to 5. Default 0:
+  the agent is sent back once, then let stop. With `retry: 2`, a check still failing sends it back up to three times
+  in a row. The other failures (files outside the scope, checks without `retry`) send it back only the first time.
+  For Claude Code, Kekkai counts the send-backs per session in `.kekkai/stop.json`, only when a check has `retry`.
+  In Cursor, the hook's `loop_limit` (6, written by `kekkai install cursor`) must cover them.
 
 The stop hook's own timeout in the agent's hook file (900 seconds, written by `kekkai install`) must cover all the
 checks together.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kekkai\Command;
 
+use Kekkai\Config\Config;
 use Kekkai\Scope\Scope;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -24,6 +25,7 @@ final class ScopeCommand extends Command
                 The agent declares it with the MCP tool declare_scope; you can declare it yourself before handing the task over.
 
                   <info>kekkai scope</info>                                              show it
+                  <info>kekkai scope show --format json</info>                           as .kekkai/scope.json: docs/schemas/scope.schema.json
                   <info>kekkai scope declare pricing config/services.yaml -m "Add a price to products"</info>
                   <info>kekkai scope widen src/Shared/Money.php -m "Prices are rounded by Money"</info>
                   <info>kekkai scope clear</info>                                        the task is done
@@ -34,7 +36,8 @@ final class ScopeCommand extends Command
         $this
             ->addArgument('action', InputArgument::OPTIONAL, 'show, declare, widen or clear', 'show')
             ->addArgument('paths', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Paths, globs or zones')
-            ->addOption('message', 'm', InputOption::VALUE_REQUIRED, 'The intent (declare) or the reason (widen)');
+            ->addOption('message', 'm', InputOption::VALUE_REQUIRED, 'The intent (declare) or the reason (widen)')
+            ->addOption('format', 'f', InputOption::VALUE_REQUIRED, 'show: text or json', 'text');
         $this->addRootOption();
     }
 
@@ -51,7 +54,7 @@ final class ScopeCommand extends Command
         try {
             switch ($action) {
                 case 'show':
-                    $output->writeln($project->scope()?->describe($config) ?? 'No scope declared.');
+                    $this->show($project->scope(), $config, $input->getOption('format') === 'json', $output);
 
                     return Command::SUCCESS;
                 case 'declare':
@@ -89,5 +92,15 @@ final class ScopeCommand extends Command
 
             return Command::FAILURE;
         }
+    }
+
+    private function show(?Scope $scope, Config $config, bool $asJson, OutputInterface $output): void
+    {
+        if ($asJson) {
+            $output->writeln(json_encode($scope?->toArray(), \JSON_PRETTY_PRINT | \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR), OutputInterface::OUTPUT_RAW);
+
+            return;
+        }
+        $output->writeln($scope?->describe($config) ?? 'No scope declared.');
     }
 }

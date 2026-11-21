@@ -49,11 +49,11 @@ final class Cursor
     {
         $loops = $input['loop_count'] ?? 0;
         $status = $input['status'] ?? 'completed';
-        if ($loops !== 0 || $status !== 'completed') {
+        if (!\is_int($loops) || $loops < 0 || $status !== 'completed') {
             return null;
         }
 
-        $report = Guard::review($root ?? self::root($input), $runChecks);
+        $report = Guard::review($root ?? self::root($input), $runChecks, $loops);
 
         return $report === null ? null : ['followup_message' => $report];
     }

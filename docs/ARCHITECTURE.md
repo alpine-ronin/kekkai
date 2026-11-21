@@ -73,7 +73,7 @@ agent ──edit hook JSON──▶ kekkai hook pre-tool-use [--agent cursor]
 
 ```text
 agent ──stop hook JSON──▶ kekkai hook stop [--agent cursor]
-                             │ already sent back once? → nothing
+                             │ already sent back once (retry N: N+1 times)? → nothing
                              │ Guard::review() → Reviewer::review('HEAD')
                              │   ChangedFiles::since()   git diff + untracked
                              │   Gate::decide() per file

@@ -52,6 +52,8 @@ final class InitCommand extends Command
           # - name: tests
           #   run: vendor/bin/phpunit
           #   timeout: 600
+          #   retry: 1         # send the agent back once more if it still fails (0 to 5, default 0)
+          #   on: [stop, ci]   # [ci]: only in `kekkai check`, not when the agent stops
 
         YAML;
 

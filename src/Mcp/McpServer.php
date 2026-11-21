@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kekkai\Mcp;
 
 use Kekkai\Check\Reviewer;
+use Kekkai\Config\CheckTrigger;
 use Kekkai\Project;
 use Kekkai\Scope\Scope;
 
@@ -219,7 +220,7 @@ final class McpServer
         $base = \is_string($arguments['base'] ?? null) && $arguments['base'] !== '' ? $arguments['base'] : 'HEAD';
         $runChecks = ($arguments['run_checks'] ?? true) !== false;
 
-        return (new Reviewer($this->project))->review($base, $runChecks)->toText();
+        return (new Reviewer($this->project))->review($base, $runChecks, CheckTrigger::Stop)->toText();
     }
 
     /**

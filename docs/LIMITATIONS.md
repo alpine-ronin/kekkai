@@ -18,7 +18,8 @@
 - **The review compares with `HEAD`.** Commits the agent makes during the task leave the diff: the stop review then
   misses them. Use `kekkai check --base <revision>` to review a series of commits.
 - **Renames count as a deletion and an addition**, both judged against the scope.
-- **Sent back once.** If the stop review fails twice, the agent is let stop: read the report yourself.
+- **Sent back once.** If the stop review fails twice, the agent is let stop: read the report yourself. A check
+  with `retry` (at most 5) gets more rounds.
 - **Binaries for Linux (x86_64, arm64) and macOS on Apple silicon.** Elsewhere (an Intel Mac, Windows), the PHAR
   with PHP 8.3+. The hooks run through `sh`, so on Windows the agent needs Git Bash or WSL.
 - **Not on Packagist yet.** Composer installs it from the GitHub repository (see [INSTALL.md](INSTALL.md)).

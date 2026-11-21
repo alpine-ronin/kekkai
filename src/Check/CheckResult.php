@@ -14,6 +14,7 @@ final readonly class CheckResult
      * @param bool $passed
      * @param string $output
      * @param bool $timedOut
+     * @param int $retry how many more times this check's failure sends the agent back after the first
      */
     public function __construct(
         public string $name,
@@ -21,6 +22,7 @@ final readonly class CheckResult
         public bool $passed,
         public string $output,
         public bool $timedOut = false,
+        public int $retry = 0,
     ) {
     }
 

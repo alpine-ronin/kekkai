@@ -38,6 +38,17 @@ final class GateTest extends TestCase
         self::assertSame(Decision::OUTSIDE_PROJECT, $gate->decide('/etc/hosts')->rule);
     }
 
+    public function testNamesWhatDecided(): void
+    {
+        $gate = new Gate('/p', $this->config, Scope::declare('Prices', ['catalog', 'tests/'], 'agent', $this->config));
+
+        self::assertSame('catalog', $gate->decide('/p/src/Catalog/Product.php')->matchedBy);
+        self::assertSame('tests/', $gate->decide('/p/tests/ProductTest.php')->matchedBy);
+        self::assertSame('src/Catalog/Migrations/', $gate->decide('/p/src/Catalog/Migrations/V1.php')->matchedBy);
+        self::assertSame('CHANGELOG.md', $gate->decide('/p/CHANGELOG.md')->matchedBy);
+        self::assertNull($gate->decide('/p/src/Billing/Invoice.php')->matchedBy);
+    }
+
     public function testOutsideTheScope(): void
     {
         $gate = new Gate('/p', $this->config, Scope::declare('Prices', ['catalog'], 'agent', $this->config));

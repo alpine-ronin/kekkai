@@ -14,6 +14,26 @@ configuration, the CLI or the MCP tools; each change is listed here.
 - The docs describe Kekkai for any coding agent: hooks for Claude Code and Cursor, the MCP server and `kekkai check`
   for the others.
 
+### Checks
+- `retry: N` on a check (0 to 5, default 0): a failure still there sends the agent back up to N more times in a row.
+  Without it, the stop hook still sends the agent back once. `kekkai install cursor` writes `loop_limit: 6`.
+- `on: [stop, ci]` on a check (the default): `[ci]` runs it in `kekkai check` only, `[stop]` at the agent's stop
+  (stop hook, `check_changes`) only.
+
+### Review
+- `kekkai check`, `check_changes` and the stop hook list each changed file first: in scope, out of scope, protected,
+  what decided it (the scope entry or zone, the pattern), and the failing checks whose output names it. The summary
+  follows. `--format json` gains `verdicts`, one entry per file.
+
+### Scope
+- `kekkai scope show --format json` prints the scope as JSON (`docs/schemas/scope.schema.json`), `null` without one.
+
+### Docs
+- The README leads with what Kekkai gives the reviewer: the declared intent, edits outside it refused, the diff
+  reviewed before the agent stops. It no longer claims to keep the agent inside its scope.
+- The README explains running two agents at once (one git worktree each) under "How it works", no longer as a
+  limitation.
+
 ## 0.1.0 (2026-11-16)
 
 The first release.

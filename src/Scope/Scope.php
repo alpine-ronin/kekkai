@@ -84,6 +84,24 @@ final readonly class Scope
     }
 
     /**
+     * @param string $path
+     * @param Config $config
+     *
+     * @return string|null the first entry, path, glob or zone name, that covers the path
+     */
+    public function coveringEntry(string $path, Config $config): ?string
+    {
+        foreach ($this->allEntries() as $entry) {
+            $globs = $config->zones[$entry] ?? [new Glob($entry)];
+            if (Config::firstMatch($globs, $path) !== null) {
+                return $entry;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @param Config $config
      *
      * @return list<Glob>

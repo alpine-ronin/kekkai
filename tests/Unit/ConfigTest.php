@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kekkai\Tests\Unit;
 
 use Kekkai\Command\InitCommand;
+use Kekkai\Config\CheckTrigger;
 use Kekkai\Config\Config;
 use Kekkai\Verdict;
 use PHPUnit\Framework\TestCase;
@@ -72,6 +73,38 @@ final class ConfigTest extends TestCase
         $this->expectExceptionMessage('checks[0] needs a "run" command.');
 
         Config::fromArray(['checks' => [['name' => 'x']]]);
+    }
+
+    public function testCheckRetry(): void
+    {
+        $config = Config::fromArray(['checks' => [['run' => 'a'], ['run' => 'b', 'retry' => 5]]]);
+
+        self::assertSame(0, $config->checks[0]->retry);
+        self::assertSame(5, $config->checks[1]->retry);
+    }
+
+    public function testCheckRetryIsCapped(): void
+    {
+        $this->expectExceptionMessage('checks[0]: "retry" must be a whole number from 0 to 5.');
+
+        Config::fromArray(['checks' => [['run' => 'a', 'retry' => 6]]]);
+    }
+
+    public function testCheckOn(): void
+    {
+        $config = Config::fromArray(['checks' => [['run' => 'a'], ['run' => 'b', 'on' => ['ci']], ['run' => 'c', 'on' => 'stop']]]);
+
+        self::assertSame([CheckTrigger::Stop, CheckTrigger::Ci], $config->checks[0]->on);
+        self::assertTrue($config->checks[1]->runsOn(CheckTrigger::Ci));
+        self::assertFalse($config->checks[1]->runsOn(CheckTrigger::Stop));
+        self::assertSame([CheckTrigger::Stop], $config->checks[2]->on);
+    }
+
+    public function testCheckOnRefusesAnUnknownTrigger(): void
+    {
+        $this->expectExceptionMessage('checks[0]: "on" must be a non-empty list of: stop, ci.');
+
+        Config::fromArray(['checks' => [['run' => 'a', 'on' => ['push']]]]);
     }
 
     public function testGuardedPaths(): void

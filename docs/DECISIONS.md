@@ -55,6 +55,8 @@ Claude Code, `loop_count` in Cursor) tells Kekkai the agent is already continuin
 lets it stop. A check that can never pass
 (a broken test suite, a flaky check) would otherwise keep the agent in an endless, costly loop.
 
+A check opts in to more rounds with `retry` (at most 5): this stays the default rule.
+
 ## Kekkai's own files are out of reach
 
 `kekkai.yaml`, `.kekkai/` and `.git/` are denied to the agent whatever the configuration: an agent able to edit its

@@ -35,7 +35,7 @@ final class Application extends Console
     public function getHelp(): string
     {
         return sprintf(<<<'HELP'
-            <info>kekkai</info> %s  keeps an AI coding agent inside the scope it declared
+            <info>kekkai</info> %s  makes an AI coding agent's diff reviewable
 
             Start in a project:  <comment>kekkai init</comment>, then <comment>kekkai install claude --write</comment> (or cursor), then <comment>kekkai doctor</comment>
             During a task:       edits outside the declared scope are refused, the diff is reviewed at stop

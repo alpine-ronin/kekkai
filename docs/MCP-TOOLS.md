@@ -65,7 +65,7 @@ No argument. The scope with its widenings, or `No scope declared.`, then the zon
 | `base` | git revision | `HEAD` |
 | `run_checks` | boolean | `true` |
 
-The review as text, the same as `kekkai check`:
+The review as text, the same as `kekkai check`, with the checks that run at stop (`on` holding `stop`):
 
 ```text
 Kekkai: 4 file(s) changed since HEAD. FAILED
